@@ -1,0 +1,49 @@
+{
+    "name": "worksofallen/laravel-er-diagram-tool",
+    "description": "Automatically generate entity relationship diagrams for a Laravel application\n\n",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Allen Alvarez",
+            "email": "worksofallen@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "spatie/laravel-package-tools": "^1.4.3"
+    },
+    "require-dev": {
+        "brianium/paratest": "^7.0",
+        "laravel/pint": "^1.10",
+        "nunomaduro/collision": "^7.0",
+        "nunomaduro/larastan": "^2.0",
+        "orchestra/testbench": "^8.0",
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Worksofallen\\LaravelERD\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Worksofallen\\LaravelERD\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Worksofallen\\LaravelERD\\LaravelERDServiceProvider"
+            ],
+            "aliases": {
+                "LaravelERD": "Worksofallen\\LaravelERD\\LaravelERDFacade"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

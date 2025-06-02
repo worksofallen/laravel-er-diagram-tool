@@ -1,0 +1,12 @@
+includes:
+    - ./vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+
+    paths:
+        - config/
+        - src/
+        - resources/
+
+    # Level 9 is the highest level
+    level: 5

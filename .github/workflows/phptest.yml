@@ -1,0 +1,78 @@
+on: [push]
+
+name: "CI"
+
+jobs:
+  test:
+    name: Test
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-versions: ['8.1', '8.2', '8.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@2.23.0
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: xdebug
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3.2.2
+        with:
+          path: vendor
+          key: php-${{ matrix.php-versions }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            php-${{ matrix.php-versions }}
+
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Enforce Coding Style 🍺
+        if: github.ref == 'refs/heads/main'
+        run: ./vendor/bin/pint
+
+      - uses: stefanzweifel/git-auto-commit-action@v4.13.1
+        if: github.ref == 'refs/heads/main'
+        with:
+          commit_message: Apply pint code style changes
+
+      - name: Configure matchers
+        uses: mheap/phpunit-matcher-action@v1
+
+      - name: Run Tests
+        run: php vendor/bin/phpunit --log-junit=junit.xml --coverage-clover clover.xml --teamcity
+      - uses: EnricoMi/publish-unit-test-result-action@v2
+        if: github.actor != 'dependabot[bot]' && always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: junit.xml
+
+      - name: Record Coverage
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Using it stand-alone since they're a little behind on Symfony components, which would cause conflicts.
+          composer global require php-coveralls/php-coveralls
+          php-coveralls --coverage_clover=clover.xml --json_path=coveralls-upload.json
+
+      - name: Run Larastan 👨
+        run: ./vendor/bin/phpstan analyse --no-progress --error-format=checkstyle > larastan.xml
+
+      - name: Push Checkstyle report
+        if: always()
+        uses: jwgmeligmeyling/checkstyle-github-action@v1.2
+        with:
+          path: 'larastan.xml'
+          title: Larastan Report
+
